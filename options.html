@@ -1,0 +1,36 @@
+<!--
+  Copyright (c) 2016 David Gouveia. All rights reserved.
+  Use of this source code is governed by a GNU-GPL license that can be
+  found in the LICENSE file.
+
+  David Gouveia <david.gouveia@gmail.com>
+
+  An option page for configuring notifications.
+-->
+<!doctype html>
+<html>
+  <head>
+    <title>Fly4Free deals filter</title>
+    <link href="style.css" rel="stylesheet" type="text/css">
+    <script src="options.js"></script>
+  </head>
+  <body>
+    <h1>
+      <img src="64.png" alt="Toast">
+      Fly4Free Deals Filter
+    </h1>
+    <h2>Options</h2>
+    <form id="options">
+      Check deals for the following location:
+      <select name="location">
+        <option value="https://www.fly4free.com/flights/flight-deals/europe/feed/">Europe</option>
+        <option value="https://www.fly4free.com/flights/flight-deals/usa/feed/">USA</option>
+        <option value="https://www.fly4free.com/flights/flight-deals/asia/feed/">Asia</option>
+        <option value="https://www.fly4free.com/flights/flight-deals/australia-and-oceania/feed/">Australia</option>
+        <option value="https://www.fly4free.com/feed/">All</option>
+      </select>
+<br/>
+Keywords ( separate by commas ):<input type="text" name="keywords"/>
+    </form>
+  </body>
+</html>
