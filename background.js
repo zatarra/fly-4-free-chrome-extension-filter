@@ -4,29 +4,32 @@
   Email: david [ . ] gouveia [ at ] gmail.com
   Web: https://www.davidgouveia.net
 */
+localStorage.links = JSON.stringify([]);
+localStorage.results = JSON.stringify([]);
 
  // Initialize cache for the first time.
 if (!localStorage.url) {
   localStorage.keywords = "";
   localStorage.url = "https://www.fly4free.com/feed/";
   localStorage.links = JSON.stringify([]);
+  localStorage.results = JSON.stringify([]);
   console.log("Initializing Cache...");
 }
 
 
 
 function getRSS(){
+  notifications_to_show = 3;
   //var searchURL = "https://www.fly4free.com/feed/";
   links = JSON.parse(localStorage.links);  
   searchURL = localStorage.url;
   var keywords = localStorage.keywords.split(",").map(function(x){ return x.toUpperCase().trim() });
+  var results = JSON.parse(localStorage.results);
 
   var x = new XMLHttpRequest();
   x.open('GET', searchURL);
-  // The Google image search API responds with JSON, so let Chrome parse it.
   x.responseType = 'text';
   x.onload = function() {
-    // Parse and process the response from Google Image Search.
     var response = x.response;
     if (!response){
       errorCallback('Invalid response...');
@@ -43,37 +46,45 @@ function getRSS(){
       var title = details_title.exec(result[1].trim());
       var link  = details_link.exec(result[1].trim());
       var date  = details_date.exec(result[1].trim());
-
-      if ( links.indexOf(link[1]) > -1  ){
-        // Found an already kown  entry. Since they're sorted by date, it means that all the other entries are older ( aka parsed already ).
-        console.log("Found the last known entry ...");
-        break;
-      }
-      links.push(link[1]);
-      // Keep only the latest 20 items..
-      if ( links.length > 20 )
-        links.shift();
-
-      localStorage.links = JSON.stringify(links);
-
-      // Search matching keyword
+      
       title_words = [];
       while ( t = title_parser.exec(title[1]) ){
         title_words.push(t[1]);
       }
+      
 
       if ( matchKeyword(title_words, keywords) ) {
-        new Notification(title[1], {
-          icon: '128.png',
-          body: link[1]
-        }).onclick = function(e){window.open(e.srcElement.body)};
-        chrome.browserAction.setIcon({
-            path: '128.png'
-        });
+       console.log("WE HAVE A MATCH: " + title_words );
+       // We have a match, let's check if the link is new deal.
+        if ( links.indexOf(link[1]) == -1  ){
+          links.push(link[1]);
+          results.push({"title": title[1], "link": link[1], "date": date[1]}); 
+          //Yup! New deal! Notify the user... Notifications are limited to three in a row to avoid spamming the user.
+          if ( notifications_to_show == 0 )
+            continue;
 
-      }
+          notifications_to_show--;
+          new Notification(title[1], {
+            icon: '128.png',
+            body: link[1]
+          }).onclick = function(e){window.open(e.srcElement.body)};
+           chrome.browserAction.setIcon({
+              path: '128.png'
+           });
+        }else {console.log("DEAL ALREADY HANDLED...");}
+      
+      }    
       
     }
+    while ( links.length > 20 )
+      links.shift();
+    while ( results.length > 20 )
+      results.shift();
+
+    localStorage.links   = JSON.stringify(links);
+    localStorage.results = JSON.stringify(results);
+    console.log("Finished loading " + results.length + " deals.");
+
   };
   x.onerror = function() {
     errorCallback('Network error.');
@@ -87,7 +98,7 @@ function matchKeyword(needle, haystack){
     var n = "";
     for ( var i = 0; i < needle.length; i++ ) {
       n = needle[i].toUpperCase();
-      if ( haystack.indexOf(n) > -1 ){
+      if ( haystack.indexOf(n) > -1  || (haystack.length == 1 && haystack[0] == "") ){
         return true;
       }
     }

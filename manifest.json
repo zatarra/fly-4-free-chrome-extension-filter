@@ -1,21 +1,19 @@
 {
   "name": "Fly4Free deals filter",
   "version": "1.0",
-  "description":
-    "Allows users to receive notifications about specific deals. Just specify a list of keywords ( e.g. thailand ) and get a specific list of deals matching your query.",
+  "description": "Get notifications for specific deals! Just fill in interesting keywords ( e.g. thailand ) and that's it!",
   "icons": {"16": "16.png", "48": "48.png", "128": "128.png"},
   "permissions": [
     "notifications",
     "https://www.fly4free.com/feed/"
   ],
   "browser_action": {
-     "default_icon": "128.png"
+     "default_icon": "128-off.png",
+     "default_popup": "latest.html"
   },
   "options_page": "options.html",
   "background": { "scripts": ["background.js"] },
   "manifest_version": 2,
-
-  // crbug.com/134315
   "web_accessible_resources": [
     "48.png"
   ]
