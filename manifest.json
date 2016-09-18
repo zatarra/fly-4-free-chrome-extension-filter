@@ -1,7 +1,8 @@
 {
-  "name": "Fly4Free deals filter",
-  "version": "1.0",
-  "description": "Get notifications for specific deals! Just fill in interesting keywords ( e.g. thailand ) and that's it!",
+  "name": "Fly4Free notification manager",
+  "version": "1.0.2",
+  "description": "Get notifications for specific deals! Just fill in interesting keywords   e.g. thailand ) and that's it!",
+  "homepage_url": "https://www.davidgouveia.net",
   "icons": {"16": "16.png", "48": "48.png", "128": "128.png"},
   "permissions": [
     "notifications",

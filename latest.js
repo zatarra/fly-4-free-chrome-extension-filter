@@ -5,6 +5,18 @@
   Web: https://www.davidgouveia.net
 */
 
+function matchKeyword(needle, haystack){
+    if ( localStorage.listAll == "1" ) return true;
+    var n = "";
+    for ( var i = 0; i < needle.length; i++ ) {
+      n = needle[i].toUpperCase();
+      if ( haystack.indexOf(n) > -1  || (haystack.length == 1 && haystack[0] == "") ){
+        return true;
+      }
+    }
+    return false;
+}
+
 
 window.addEventListener('load', function() {
   loadDeals();
@@ -19,13 +31,21 @@ window.addEventListener('click', function(e) {
 });
 
 function loadDeals(){
-  var deals = document.getElementById("deals");
+  //var keywords = localStorage.keywords.split(",").map(function(x){ return x.toUpperCase().trim() });
+  tableRef = document.getElementById('tblDeals');
   results = JSON.parse(localStorage.results);
-  output = "";
   for ( var i = 0; i < results.length; i++ ) {
-    output += "<p><a href='" + results[i].link  + "'>" + results[i].title  + "</a></p>";
+    addDeal("<a href='" + results[i].link  + "'>" + results[i].title  + "</a>", results[i].date, tableRef);
   }
-  deals.innerHTML = output;
+}
+
+function addDeal(name, date, tableRef){
+
+  // Insert a row in the table at the last row 
+  var newRow   = tableRef.insertRow(0);
+  var cellName  = newRow.insertCell(0);
+  cellName.innerHTML = name;
+
 }
 
 function errorCalback(msg){

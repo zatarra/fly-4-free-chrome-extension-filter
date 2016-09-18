@@ -4,10 +4,8 @@
   Email: david [ . ] gouveia [ at ] gmail.com
   Web: https://www.davidgouveia.net
 */
-localStorage.links = JSON.stringify([]);
-localStorage.results = JSON.stringify([]);
 
- // Initialize cache for the first time.
+ // Initializing settings for the first time.
 if (!localStorage.url) {
   localStorage.keywords = "";
   localStorage.url = "https://www.fly4free.com/feed/";
@@ -16,15 +14,28 @@ if (!localStorage.url) {
   console.log("Initializing Cache...");
 }
 
+function purgeCache(links, results) {
+  //console.log("amount of links: " + links.length );
 
+  while ( links.length > 30 ){
+    links.shift();
+  }
+
+  while ( results.length > 20 ){
+    results.shift();
+  }
+
+  localStorage.links = JSON.stringify(links);
+  localStorage.results = JSON.stringify(results);
+}
 
 function getRSS(){
-  notifications_to_show = 3;
-  //var searchURL = "https://www.fly4free.com/feed/";
-  links = JSON.parse(localStorage.links);  
-  searchURL = localStorage.url;
-  var keywords = localStorage.keywords.split(",").map(function(x){ return x.toUpperCase().trim() });
-  var results = JSON.parse(localStorage.results);
+  var notifications_to_show = 3;
+  var links                 = JSON.parse(localStorage.links);  
+  var keywords              = localStorage.keywords.split(",").map(function(x){ return x.toUpperCase().trim() });
+  var searchURL             = localStorage.url;
+  var results               = JSON.parse(localStorage.results);
+  console.log("Booting up with " + links.length + " link(s) and " + results.length + " deals.");
 
   var x = new XMLHttpRequest();
   x.open('GET', searchURL);
@@ -40,50 +51,43 @@ function getRSS(){
     var details_link  = /<link>([\s\S]*?)<\/link>/im;
     var details_date  = /<pubDate>([\s\S]*?)<\/pubDate>/im;
     var title_parser  = /(\w+)/img
+//    console.log("Keywords I'm looking for: " + keywords );
+//    console.log("URL: " + searchURL);
 
     while ( result = items.exec(response) ) {
       // Iterate over the existing offer, save data to a local database and match it against user's preferences. 
       var title = details_title.exec(result[1].trim());
       var link  = details_link.exec(result[1].trim());
       var date  = details_date.exec(result[1].trim());
-      
+//      console.log("Processing: " + link[1]);
+
+      // Create a list of tokens      
       title_words = [];
       while ( t = title_parser.exec(title[1]) ){
         title_words.push(t[1]);
       }
-      
-
+//      console.log("Title tokens: " + title_words);
+     
+      // Match our keywords against the extracted tokens.
       if ( matchKeyword(title_words, keywords) ) {
-       console.log("WE HAVE A MATCH: " + title_words );
-       // We have a match, let's check if the link is new deal.
+//        console.log("MATCHED");
+        // We have a match, let's check if the link is new deal.
         if ( links.indexOf(link[1]) == -1  ){
           links.push(link[1]);
           results.push({"title": title[1], "link": link[1], "date": date[1]}); 
           //Yup! New deal! Notify the user... Notifications are limited to three in a row to avoid spamming the user.
-          if ( notifications_to_show == 0 )
+          if ( notifications_to_show == 0 ){
+            console.log("Ignoring next notifications during current iteration...");
             continue;
-
+          }
           notifications_to_show--;
-          new Notification(title[1], {
-            icon: '128.png',
-            body: link[1]
-          }).onclick = function(e){window.open(e.srcElement.body)};
-           chrome.browserAction.setIcon({
-              path: '128.png'
-           });
-        }else {console.log("DEAL ALREADY HANDLED...");}
-      
-      }    
-      
+          showNotification(title[1], link[1]);
+        }
+      }
+//      console.log("*************************************************");    
     }
-    while ( links.length > 20 )
-      links.shift();
-    while ( results.length > 20 )
-      results.shift();
-
-    localStorage.links   = JSON.stringify(links);
-    localStorage.results = JSON.stringify(results);
-    console.log("Finished loading " + results.length + " deals.");
+    purgeCache(links, results);
+    console.log("Finished loading " + results.length + " deals of which " + links.length + " were stored");
 
   };
   x.onerror = function() {
@@ -93,8 +97,20 @@ function getRSS(){
 
 }
 
+function showNotification(title, link){
+  new Notification(title, {
+    icon: '128.png',
+    body: link
+  }).onclick = function(e){window.open(e.srcElement.body)};
+
+  chrome.browserAction.setIcon({
+    path: '128.png'
+  });
+
+}
 
 function matchKeyword(needle, haystack){
+    if ( localStorage.listAll == "1" ) return true;
     var n = "";
     for ( var i = 0; i < needle.length; i++ ) {
       n = needle[i].toUpperCase();
@@ -105,11 +121,13 @@ function matchKeyword(needle, haystack){
     return false;
 }
 
+
 function errorCallback(msg){
   console.log(msg);
 }
 
-// Test for notification support.
+
+//Check for Notifications support and start the loop.
 if (window.Notification) {
   getRSS(); 
 
